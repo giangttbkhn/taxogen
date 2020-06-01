@@ -6,7 +6,7 @@ taxonName=our-l3-0.25
 ## If need preprocessing from raw input, set it to be 1, otherwise, set 0
 FIRST_RUN=${FIRST_RUN:- 0}
 
-if [ $FIRST_RUN -eq 1 ]; then
+#if [ $FIRST_RUN -eq 1 ]; then
 	echo 'Start data preprocessing'
 	## compile word2vec for embedding learning
 	gcc word2vec.c -o word2veec -lm -pthread -O2 -Wall -funroll-loops -Wno-unused-result
@@ -24,7 +24,7 @@ if [ $FIRST_RUN -eq 1 ]; then
 
 	cp ../data/$corpusName/input/embeddings.txt ../data/$corpusName/init/embeddings.txt
 	cp ../data/$corpusName/input/keywords.txt ../data/$corpusName/init/seed_keywords.txt
-fi
+#fi
 
 ## create root folder for taxonomy
 if [ ! -d ../data/$corpusName/$taxonName ]; then

@@ -93,20 +93,20 @@ def load_sp_params():
     pd['n_cluster'] = 5
     pd['filter_thre'] = 0.15
     pd['n_expand'] = 200
-    pd['n_cluster_iter'] = 5
+    pd['n_cluster_iter'] = 2
     return pd
 
 
 def load_dblp_params_method():
     pd = dict()
-    pd['data_dir'] = '/shared/data/jiaming/local-embedding/data/dblp/'
+    pd['data_dir'] = '/Users/trinhgiang/PycharmProjects/taxogen/data/dblp/'
     pd['doc_file'] = pd['data_dir'] + 'input/papers.txt'
     pd['doc_keyword_cnt_file'] = pd['data_dir'] + 'input/keyword_cnt.txt'
     pd['input_dir'] = pd['data_dir'] + 'input/'
     pd['root_node_dir'] = pd['data_dir'] + 'cluster/'
     pd['n_cluster'] = 5
-    pd['filter_thre'] = 0.25
+    pd['filter_thre'] = 0.50
     pd['n_expand'] = 100
-    pd['n_cluster_iter'] = 2
+    pd['n_cluster_iter'] = 3
     return pd
 

@@ -13,8 +13,10 @@ from local_embedding_training import main_local_embedding
 from shutil import copyfile
 from distutils.dir_util import copy_tree
 from os import symlink
+import traceback
 
-MAX_LEVEL = 3
+MAX_LEVEL = 2
+
 
 class DataFiles:
     def __init__(self, input_dir, node_dir):
@@ -45,7 +47,7 @@ level: the current level in the recursion
 '''
 
 
-def recur(input_dir, node_dir, n_cluster, parent, n_cluster_iter, filter_thre,\
+def recur(input_dir, node_dir, n_cluster, parent, n_cluster_iter, filter_thre, \
           n_expand, level, caseolap=True, local_embedding=True):
     if level > MAX_LEVEL:
         return
@@ -55,15 +57,16 @@ def recur(input_dir, node_dir, n_cluster, parent, n_cluster_iter, filter_thre,\
     ## TODO: Everytime we need to read-in the whole corpus, which can be slow.
     full_data = DataSet(df.embedding_file, df.doc_file)
     end = time.time()
-    print('[Main] Done reading the full data using time %s seconds' % (end-start))
+    print('[Main] Done reading the full data using time %s seconds' % (end - start))
 
     # filter the keywords
     if caseolap is False:
         try:
             children = run_clustering(full_data, df.doc_id_file, df.seed_keyword_file, n_cluster, node_dir, parent, \
                                       df.cluster_keyword_file, df.hierarchy_file, df.doc_membership_file)
-        except:
-            print('Clustering not finished.')
+        except Exception as e:
+            print('Clustering not finished.',)
+            traceback.print_exc()
             return
         copyfile(df.seed_keyword_file, df.filtered_keyword_file)
     else:
@@ -72,10 +75,11 @@ def recur(input_dir, node_dir, n_cluster, parent, n_cluster_iter, filter_thre,\
             if iter > 0:
                 df.seed_keyword_file = df.filtered_keyword_file
             try:
-                children = run_clustering(full_data, df.doc_id_file, df.seed_keyword_file, n_cluster, node_dir, parent,\
-                               df.cluster_keyword_file, df.hierarchy_file, df.doc_membership_file)
-            except:
-                print('Clustering not finished.')
+                children = run_clustering(full_data, df.doc_id_file, df.seed_keyword_file, n_cluster, node_dir, parent, \
+                                          df.cluster_keyword_file, df.hierarchy_file, df.doc_membership_file)
+            except Exception as e:
+                print('Clustering not finished.', e)
+                traceback.print_exc()
                 return
 
             start = time.time()
@@ -90,7 +94,7 @@ def recur(input_dir, node_dir, n_cluster, parent, n_cluster_iter, filter_thre,\
             src_file = node_dir + 'embeddings.txt'
             for child in children:
                 tgt_file = node_dir + child + '/embeddings.txt'
-                # copyfile(src_file, tgt_file)
+                copyfile(src_file, tgt_file)
                 symlink(src_file, tgt_file)
         else:
             start = time.time()
@@ -102,17 +106,18 @@ def recur(input_dir, node_dir, n_cluster, parent, n_cluster_iter, filter_thre,\
         recur(input_dir, node_dir + child + '/', n_cluster, child, n_cluster_iter, \
               filter_thre, n_expand, level + 1, caseolap, local_embedding)
 
+
 def main(opt):
-    input_dir = opt['input_dir']
-    init_dir = opt['data_dir'] + 'init/'
-    n_cluster = opt['n_cluster']
-    filter_thre = opt['filter_thre']
-    n_expand = opt['n_expand']
-    n_cluster_iter = opt['n_cluster_iter']
+    input_dir = opt['input_dir']  # /data/dblp/input
+    init_dir = opt['data_dir'] + 'init/'  # /data/dblp/init
+    n_cluster = opt['n_cluster']  # n = 3
+    filter_thre = opt['filter_thre']  # threshold = 0.25
+    n_expand = opt['n_expand']  # 100
+    n_cluster_iter = opt['n_cluster_iter']  # =2
     level = 0
 
     # our method
-    root_dir = opt['data_dir'] + 'our-l3-0.15/'
+    root_dir = opt['data_dir'] + 'our-l3-0.25/'  # /data/dblp/our-l3-0.15/
     copy_tree(init_dir, root_dir)
     recur(input_dir, root_dir, n_cluster, '*', n_cluster_iter, filter_thre, n_expand, level, True, True)
 
@@ -138,4 +143,3 @@ if __name__ == '__main__':
     # opt = load_sp_params()
     opt = load_dblp_params_method()
     main(opt)
-

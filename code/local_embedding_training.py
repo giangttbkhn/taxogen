@@ -9,11 +9,12 @@ import subprocess
 import utils
 import os
 
+
 def read_files(folder, parent):
     print("[Local-embedding] Reading file:", parent)
     emb_file = '%s/embeddings.txt' % folder
     hier_file = '%s/hierarchy.txt' % folder
-    keyword_file = '%s/keywords.txt' % folder ## here only consider those remaining keywords
+    keyword_file = '%s/keywords.txt' % folder  ## here only consider those remaining keywords
 
     embs = utils.load_embeddings(emb_file)
     keywords = set()
@@ -39,8 +40,8 @@ def read_files(folder, parent):
 
     return embs, keywords, cates
 
-def relevant_phs(embs, cates, N):
 
+def relevant_phs(embs, cates, N):
     for cate in cates:
         worst = -100
         bestw = [-100] * (N + 1)
@@ -54,11 +55,11 @@ def relevant_phs(embs, cates, N):
                 for i in range(N):
                     if sim >= bestw[i]:
                         for j in range(N - 1, i - 1, -1):
-                            bestw[j+1] = bestw[j]
-                            bestp[j+1] = bestp[j]
+                            bestw[j + 1] = bestw[j]
+                            bestp[j + 1] = bestp[j]
                         bestw[i] = sim
                         bestp[i] = ph
-                        worst = bestw[N-1]
+                        worst = bestw[N - 1]
                         break
 
         # print bestw
@@ -70,6 +71,7 @@ def relevant_phs(embs, cates, N):
     print('Top similar phrases found.')
 
     return cates
+
 
 def revevant_docs(text, reidx, cates):
     docs = {}
@@ -99,7 +101,6 @@ def revevant_docs(text, reidx, cates):
 
 
 def run_word2vec(pd_map, docs, cates, folder):
-
     for cate in cates:
 
         c_docs = set()
@@ -107,7 +108,7 @@ def run_word2vec(pd_map, docs, cates, folder):
             c_docs = c_docs.union(pd_map[ph])
 
         print('Starting cell %s with %d docs.' % (cate, len(c_docs)))
-        
+
         # save file
         # sub_folder = '%s/%s' % (folder, cate)
         # input_f = '%s/text' % sub_folder
@@ -124,9 +125,10 @@ def run_word2vec(pd_map, docs, cates, folder):
         print('[Local-embedding] starting calling word2vec')
         print(input_f)
         print(output_f)
-        # embed_proc = subprocess.Popen(["./word2vec", "-threads", "20", "-train", input_f, "-output", output_f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # embed_proc = subprocess.Popen(["/Users/trinhgiang/PycharmProjects/taxogen/code/word2vec.c", "-threads", "20", "-train", input_f, "-output", output_f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # embed_proc.wait()
-        subprocess.call(["./word2vec", "-threads", "20", "-train", input_f, "-output", output_f])
+        cmd = './word2veec -threads 20 -train ' + input_f + ' -output ' + output_f
+        subprocess.call(cmd, shell=True)
         print('[Local-embedding] done training word2vec')
 
 
@@ -139,20 +141,18 @@ def main_local_embedding(folder, doc_file, reidx, parent, N):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='local_embedding_training.py', \
-            description='Train Embeddings for each query.')
+                                     description='Train Embeddings for each query.')
     parser.add_argument('-folder', required=True, \
-            help='The folder of previous level.')
+                        help='The folder of previous level.')
     parser.add_argument('-text', required=True, \
-            help='The raw text file.')
+                        help='The raw text file.')
     parser.add_argument('-reidx', required=True, \
-            help='The reversed index file.')
+                        help='The reversed index file.')
     parser.add_argument('-parent', required=True, \
-            help='the target expanded phrase')
+                        help='the target expanded phrase')
     parser.add_argument('-N', required=True, \
-            help='The number of neighbor used to extract documents')
+                        help='The number of neighbor used to extract documents')
     args = parser.parse_args()
     main_local_embedding(args.folder, args.text, args.reidx, args.parent, args.N)
 
-
 # python local_embedding_training.py -folder ../data/cluster -text ../data/paper_phrases.txt.frequent.hardcode -reidx ../data/reidx.txt -parent \* -N 100
-
